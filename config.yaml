@@ -1,0 +1,43 @@
+# Database Configuration
+database:
+  host: localhost
+  port: 5432
+  name: todoapp
+  schema: voc_classifier
+  user: todoapp
+  password: password
+
+# BERTopic Configuration
+bertopic:
+  language: korean
+  model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  min_topic_size: 10
+  nr_topics: null
+  calculate_probabilities: true
+
+# Application Configuration
+app:
+  name: VOC Classifier
+  version: 1.0.0
+  debug: true
+
+# AI Classification Settings
+classification:
+  auto_classify: true
+  confidence_threshold: 0.6
+  suggest_new_categories: true
+
+# VOC Settings
+voc:
+  default_priority: MEDIUM
+  default_status: PENDING
+  priorities:
+    - LOW
+    - MEDIUM
+    - HIGH
+    - CRITICAL
+  statuses:
+    - PENDING
+    - ANALYZED
+    - RESOLVED
+    - REJECTED
