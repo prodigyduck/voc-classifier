@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from backend.api import voc, category, ui_improvement, analytics, classification
+from backend.api import voc, category, ui_improvement, analytics
 from backend.database.db import engine, Base
 import yaml
 from pathlib import Path
@@ -33,7 +33,12 @@ app.include_router(voc.router, prefix="/api/v1/vocs", tags=["VOCs"])
 app.include_router(category.router, prefix="/api/v1/categories", tags=["Categories"])
 app.include_router(ui_improvement.router, prefix="/api/v1/ui-improvements", tags=["UI Improvements"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
-app.include_router(classification.router, prefix="/api/v1/classification", tags=["Classification"])
+
+try:
+    from backend.api import classification
+    app.include_router(classification.router, prefix="/api/v1/classification", tags=["Classification"])
+except ImportError:
+    pass
 
 
 @app.on_event("startup")
