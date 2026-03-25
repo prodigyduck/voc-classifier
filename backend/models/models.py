@@ -14,8 +14,8 @@ class Category(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    vocs = relationship("VOC", back_populates="category")
-    ai_suggested_vocs = relationship("VOC", foreign_keys="VOC.ai_suggested_category_id", back_populates="ai_suggested_category")
+    vocs = relationship("VOC", back_populates="category", foreign_keys="VOC.category_id")
+    ai_suggested_vocs = relationship("VOC", foreign_keys="[VOC.ai_suggested_category_id]", back_populates="ai_suggested_category")
 
 
 class VOC(Base):

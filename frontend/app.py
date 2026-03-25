@@ -83,7 +83,7 @@ def get_categories():
 if page == i18n.t("menu.dashboard"):
     st.header(f"📈 {i18n.t('dashboard.title')}")
 
-    auto_refresh = st.checkbox("자동 새로고침 (30초)", value=False)
+    auto_refresh = st.checkbox(i18n.t("common.auto_refresh"), value=False)
     if auto_refresh:
         time.sleep(30)
         st.rerun()
@@ -93,20 +93,20 @@ if page == i18n.t("menu.dashboard"):
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            st.metric("전체 VOC", analytics["total_vocs"])
+            st.metric(i18n.t("dashboard.total_voc"), analytics["total_vocs"])
 
         with col2:
-            st.metric("UI 관련 VOC", analytics["ui_related_count"])
+            st.metric(i18n.t("dashboard.ui_related_voc"), analytics["ui_related_count"])
 
         with col3:
             pending = analytics["by_status"].get("PENDING", 0)
-            st.metric("미분류 VOC", pending)
+            st.metric(i18n.t("dashboard.unclassified_voc"), pending)
 
         with col4:
             analyzed = analytics["by_status"].get("ANALYZED", 0)
-            st.metric("분류 완료", analyzed)
+            st.metric(i18n.t("dashboard.classified_voc"), analyzed)
 
-        st.subheader("카테고리별 분포")
+        st.subheader(i18n.t("dashboard.category_distribution"))
         if analytics["by_category"]:
             category_df = pd.DataFrame(list(analytics["by_category"].items()), columns=["카테고리", "건수"])
             fig_cat = px.bar(category_df, x="카테고리", y="건수", color="건수")
@@ -194,19 +194,19 @@ elif page == "VOC 입력":
     category_options = {c["name"]: c["id"] for c in categories}
 
     with st.form("voc_form"):
-        title = st.text_input("제목", max_length=500)
-        content = st.text_area("내용", height=200)
+        title = st.text_input(i18n.t("voc.title"))
+        content = st.text_area(i18n.t("voc.content"), height=200)
 
         col1, col2 = st.columns(2)
         with col1:
-            category = st.selectbox("카테고리", list(category_options.keys()))
-            priority = st.selectbox("우선순위", ["LOW", "MEDIUM", "HIGH", "CRITICAL"], index=1)
+            category = st.selectbox(i18n.t("voc.category"), list(category_options.keys()))
+            priority = st.selectbox(i18n.t("voc.priority"), ["LOW", "MEDIUM", "HIGH", "CRITICAL"], index=1)
 
         with col2:
-            submitted_by = st.text_input("제출자")
-            ui_related = st.checkbox("UI 개선으로 해결 가능", value=False)
+            submitted_by = st.text_input(i18n.t("voc.submitted_by"))
+            ui_related = st.checkbox(i18n.t("voc.improvement_action"), value=False)
 
-        submitted = st.form_submit_button("VOC 등록")
+        submitted = st.form_submit_button(i18n.t("voc.register_voc"))
 
         if submitted:
             if title and content:
@@ -222,46 +222,46 @@ elif page == "VOC 입력":
                 try:
                     response = requests.post(f"{API_BASE_URL}/vocs", json=payload)
                     if response.status_code == 201:
-                        st.success("VOC가 성공적으로 등록되었습니다!")
+                        st.success(i18n.t("common.registration_success"))
                         st.balloons()
                     else:
-                        st.error(f"등록 실패: {response.text}")
+                        st.error(f"{i18n.t('common.registration_failed')}: {response.text}")
                 except Exception as e:
-                    st.error(f"등록 중 오류 발생: {str(e)}")
+                    st.error(f"{i18n.t('common.loading_failed')}: {str(e)}")
             else:
-                st.warning("제목과 내용은 필수 입력 항목입니다.")
+                st.warning(i18n.t("common.required_field"))
 
 
-elif page == "분류 모델":
-    st.header("🤖 VOC 분류 모델 (BERTopic)")
+elif page == i18n.t("menu.classification_model"):
+    st.header(f"🤖 {i18n.t('classification.title')}")
 
-    st.info("BERTopic을 사용하여 VOC를 자동으로 분류합니다.")
+    st.info(i18n.t("classification.info"))
 
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("📚 모델 학습"):
+        if st.button(f"📚 {i18n.t('classification.train_model')}"):
             try:
                 response = requests.post(f"{API_BASE_URL}/classification/train")
                 if response.status_code == 200:
                     st.success(response.json()["message"])
                 else:
-                    st.error(f"학습 실패: {response.text}")
+                    st.error(f"{i18n.t('classification.train_model')}: {response.text}")
             except Exception as e:
-                st.error(f"학습 중 오류 발생: {str(e)}")
+                st.error(f"{i18n.t('classification.train_model')}: {str(e)}")
 
     with col2:
-        if st.button("🔄 일괄 분류 실행"):
+        if st.button(f"🔄 {i18n.t('classification.batch_classify')}"):
             try:
                 response = requests.post(f"{API_BASE_URL}/classification/classify-batch", params={"limit": 100})
                 if response.status_code == 200:
                     st.success(response.json()["message"])
                 else:
-                    st.error(f"분류 실패: {response.text}")
+                    st.error(f"{i18n.t('classification.batch_classify')}: {response.text}")
             except Exception as e:
-                st.error(f"분류 중 오류 발생: {str(e)}")
+                st.error(f"{i18n.t('classification.batch_classify')}: {str(e)}")
 
-    st.subheader("토픽 정보")
+    st.subheader(i18n.t("classification.topic_info"))
     try:
         response = requests.get(f"{API_BASE_URL}/classification/topics")
         if response.status_code == 200:
@@ -278,37 +278,37 @@ elif page == "분류 모델":
                             for doc in topic["representative_docs"][:3]:
                                 st.text(f"• {doc[:200]}...")
             else:
-                st.info("아직 학습된 토픽이 없습니다.")
+                st.info(i18n.t("classification.no_topic"))
         else:
-            st.error("토픽 정보를 불러오는데 실패했습니다.")
+            st.error(i18n.t("common.loading_failed"))
     except Exception as e:
-        st.error(f"토픽 정보 불러오기 중 오류 발생: {str(e)}")
+        st.error(f"{i18n.t('common.loading_failed')}: {str(e)}")
 
 
-elif page == "UI 개선 추적":
-    st.header("📊 UI 개선 추적")
+elif page == i18n.t("menu.ui_improvement_tracking"):
+    st.header(f"📊 {i18n.t('ui_improvement.title')}")
 
-    st.info("UI 개선 활동으로 인한 VOC 감소율을 추적합니다.")
+    st.info(i18n.t("ui_improvement.info"))
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        total_imps = st.metric("총 개선 활동", "0")
+        total_imps = st.metric(i18n.t("ui_improvement.total_improvements"), "0")
     with col2:
-        completed_imps = st.metric("완료된 활동", "0")
+        completed_imps = st.metric(i18n.t("ui_improvement.completed_improvements"), "0")
     with col3:
-        avg_reduction = st.metric("평균 감소율", "0%")
+        avg_reduction = st.metric(i18n.t("ui_improvement.avg_reduction_rate"), "0%")
 
     try:
         response = requests.get(f"{API_BASE_URL}/ui-improvements/analytics/overview")
         if response.status_code == 200:
             analytics = response.json()
 
-            total_imps.metric("총 개선 활동", str(analytics["total_improvements"]))
-            completed_imps.metric("완료된 활동", str(analytics["completed_improvements"]))
-            avg_reduction.metric("평균 감소율", f"{analytics['average_reduction_rate'] * 100:.1f}%")
+            total_imps.metric(i18n.t("ui_improvement.total_improvements"), str(analytics["total_improvements"]))
+            completed_imps.metric(i18n.t("ui_improvement.completed_improvements"), str(analytics["completed_improvements"]))
+            avg_reduction.metric(i18n.t("ui_improvement.avg_reduction_rate"), f"{analytics['average_reduction_rate'] * 100:.1f}%")
 
             if analytics["reductions"]:
-                st.subheader("개선 활동별 감소율")
+                st.subheader(i18n.t("ui_improvement.reduction_by_improvement"))
                 reduction_df = pd.DataFrame(analytics["reductions"])
 
                 col1, col2 = st.columns(2)
@@ -347,7 +347,7 @@ elif page == "UI 개선 추적":
                     st.plotly_chart(fig_comparison, use_container_width=True)
 
                 if analytics["by_category"]:
-                    st.subheader("카테고리별 평균 감소율")
+                    st.subheader(i18n.t("ui_improvement.avg_reduction_by_category"))
                     category_df = pd.DataFrame(list(analytics["by_category"].items()), columns=["카테고리", "평균 감소율"])
                     category_df["평균 감소율 (%)"] = category_df["평균 감소율"] * 100
                     fig_category = px.bar(
@@ -360,24 +360,24 @@ elif page == "UI 개선 추적":
                     st.plotly_chart(fig_category, use_container_width=True)
 
             else:
-                st.info("아직 감소율 추적 데이터가 없습니다.")
+                st.info(i18n.t("ui_improvement.no_data"))
         else:
-            st.error("분석 데이터를 불러오는데 실패했습니다.")
+            st.error(i18n.t("common.loading_failed"))
     except Exception as e:
-        st.error(f"분석 데이터 불러오기 중 오류 발생: {str(e)}")
+        st.error(f"{i18n.t('common.loading_failed')}: {str(e)}")
 
     st.markdown("---")
 
-    st.subheader("UI 개선 활동 등록")
+    st.subheader(i18n.t("ui_improvement.register_improvement"))
 
     with st.form("ui_improvement_form"):
-        improvement_name = st.text_input("개선 활동명")
-        description = st.text_area("설명")
+        improvement_name = st.text_input(i18n.t("ui_improvement.improvement_name"))
+        description = st.text_area(i18n.t("ui_improvement.description"))
         categories = get_categories()
         category_options = {c["name"]: c["id"] for c in categories}
-        selected_categories = st.multiselect("관련 카테고리", list(category_options.keys()))
+        selected_categories = st.multiselect(i18n.t("ui_improvement.related_categories"), list(category_options.keys()))
 
-        submitted = st.form_submit_button("등록")
+        submitted = st.form_submit_button(i18n.t("ui_improvement.register"))
 
         if submitted:
             if improvement_name:
@@ -389,19 +389,19 @@ elif page == "UI 개선 추적":
                 try:
                     response = requests.post(f"{API_BASE_URL}/ui-improvements", json=payload)
                     if response.status_code == 201:
-                        st.success("UI 개선 활동이 등록되었습니다!")
+                        st.success(i18n.t("common.registration_success"))
                     else:
-                        st.error(f"등록 실패: {response.text}")
+                        st.error(f"{i18n.t('common.registration_failed')}: {response.text}")
                 except Exception as e:
-                    st.error(f"등록 중 오류 발생: {str(e)}")
+                    st.error(f"{i18n.t('common.loading_failed')}: {str(e)}")
             else:
-                st.warning("개선 활동명은 필수 입력 항목입니다.")
+                st.warning(i18n.t("common.required_field"))
 
 
 st.sidebar.markdown("---")
-st.sidebar.info("""
-**시스템 정보:**
-- 백엔드: FastAPI (port 8000)
-- 프론트엔드: Streamlit (port 8501)
-- 분류 모델: BERTopic
+st.sidebar.info(f"""
+**{i18n.t('system_info.title')}:**
+- {i18n.t('system_info.backend')}: FastAPI (port 8000)
+- {i18n.t('system_info.frontend')}: Streamlit (port 8501)
+- {i18n.t('system_info.classification_model')}: BERTopic
 """)
