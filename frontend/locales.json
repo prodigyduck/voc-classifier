@@ -1,0 +1,180 @@
+{
+  "ko": {
+    "app_title": "VOC Classifier",
+    "app_subtitle": "제조시스템 UI 분류 및 분석",
+    "menu": {
+      "dashboard": "대시보드",
+      "voc_list": "VOC 목록",
+      "voc_input": "VOC 입력",
+      "classification_model": "분류 모델",
+      "ui_improvement_tracking": "UI 개선 추적"
+    },
+    "dashboard": {
+      "title": "VOC 분석 대시보드",
+      "total_voc": "전체 VOC",
+      "ui_related_voc": "UI 관련 VOC",
+      "unclassified_voc": "미분류 VOC",
+      "classified_voc": "분류 완료",
+      "category_distribution": "카테고리별 분포",
+      "status_distribution": "상태별 분포",
+      "priority_distribution": "우선순위별 분포",
+      "monthly_trend": "월별 추이"
+    },
+    "voc": {
+      "title": "제목",
+      "content": "내용",
+      "category": "카테고리",
+      "priority": "우선순위",
+      "status": "상태",
+      "ui_related": "UI 관련",
+      "submitted_by": "제출자",
+      "created_at": "생성일",
+      "all": "전체",
+      "ui_related_only": "UI 관련만 보기",
+      "register_voc": "VOC 등록",
+      "voca_registration": "새 VOC 입력",
+      "improvement_action": "UI 개선으로 해결 가능",
+      "priority_options": {
+        "LOW": "낮음",
+        "MEDIUM": "중간",
+        "HIGH": "높음",
+        "CRITICAL": "매우 높음"
+      },
+      "status_options": {
+        "PENDING": "대기 중",
+        "ANALYZED": "분석 완료",
+        "RESOLVED": "해결됨",
+        "REJECTED": "거부됨"
+      }
+    },
+    "classification": {
+      "title": "VOC 분류 모델 (BERTopic)",
+      "info": "BERTopic을 사용하여 VOC를 자동으로 분류합니다.",
+      "train_model": "모델 학습",
+      "batch_classify": "일괄 분류 실행",
+      "topic_info": "토픽 정보",
+      "no_topic": "아직 학습된 토픽이 없습니다.",
+      "keywords": "키워드",
+      "representative_docs": "대표 문서"
+    },
+    "ui_improvement": {
+      "title": "UI 개선 추적",
+      "info": "UI 개선 활동으로 인한 VOC 감소율을 추적합니다.",
+      "register_improvement": "UI 개선 활동 등록",
+      "improvement_name": "개선 활동명",
+      "description": "설명",
+      "related_categories": "관련 카테고리",
+      "register": "등록",
+      "total_improvements": "총 개선 활동",
+      "completed_improvements": "완료된 활동",
+      "avg_reduction_rate": "평균 감소율",
+      "reduction_by_improvement": "개선 활동별 감소율",
+      "before_after_comparison": "개선 전후 VOC 수 비교",
+      "avg_reduction_by_category": "카테고리별 평균 감소율",
+      "no_data": "아직 감소율 추적 데이터가 없습니다."
+    },
+    "common": {
+      "required_field": "필수 입력 항목입니다",
+      "registration_success": "성공적으로 등록되었습니다!",
+      "registration_failed": "등록 실패",
+      "loading_failed": "데이터를 불러오는데 실패했습니다",
+      "server_error": "백엔드 서버가 실행 중인지 확인해주세요",
+      "auto_refresh": "자동 새로고침 (30초)"
+    },
+    "system_info": {
+      "title": "시스템 정보",
+      "backend": "백엔드",
+      "frontend": "프론트엔드",
+      "classification_model": "분류 모델"
+    }
+  },
+  "en": {
+    "app_title": "VOC Classifier",
+    "app_subtitle": "Manufacturing System UI Classification and Analysis",
+    "menu": {
+      "dashboard": "Dashboard",
+      "voc_list": "VOC List",
+      "voc_input": "VOC Input",
+      "classification_model": "Classification Model",
+      "ui_improvement_tracking": "UI Improvement Tracking"
+    },
+    "dashboard": {
+      "title": "VOC Analysis Dashboard",
+      "total_voc": "Total VOCs",
+      "ui_related_voc": "UI Related VOCs",
+      "unclassified_voc": "Unclassified VOCs",
+      "classified_voc": "Classified",
+      "category_distribution": "Category Distribution",
+      "status_distribution": "Status Distribution",
+      "priority_distribution": "Priority Distribution",
+      "monthly_trend": "Monthly Trend"
+    },
+    "voc": {
+      "title": "Title",
+      "content": "Content",
+      "category": "Category",
+      "priority": "Priority",
+      "status": "Status",
+      "ui_related": "UI Related",
+      "submitted_by": "Submitted By",
+      "created_at": "Created At",
+      "all": "All",
+      "ui_related_only": "UI Related Only",
+      "register_voc": "Register VOC",
+      "voca_registration": "New VOC Input",
+      "improvement_action": "Can be resolved with UI improvement",
+      "priority_options": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High",
+        "CRITICAL": "Critical"
+      },
+      "status_options": {
+        "PENDING": "Pending",
+        "ANALYZED": "Analyzed",
+        "RESOLVED": "Resolved",
+        "REJECTED": "Rejected"
+      }
+    },
+    "classification": {
+      "title": "VOC Classification Model (BERTopic)",
+      "info": "Automatically classify VOCs using BERTopic.",
+      "train_model": "Train Model",
+      "batch_classify": "Batch Classify",
+      "topic_info": "Topic Information",
+      "no_topic": "No trained topics yet.",
+      "keywords": "Keywords",
+      "representative_docs": "Representative Documents"
+    },
+    "ui_improvement": {
+      "title": "UI Improvement Tracking",
+      "info": "Track VOC reduction rate due to UI improvement activities.",
+      "register_improvement": "Register UI Improvement",
+      "improvement_name": "Improvement Name",
+      "description": "Description",
+      "related_categories": "Related Categories",
+      "register": "Register",
+      "total_improvements": "Total Improvements",
+      "completed_improvements": "Completed Improvements",
+      "avg_reduction_rate": "Average Reduction Rate",
+      "reduction_by_improvement": "Reduction Rate by Improvement",
+      "before_after_comparison": "VOC Count Before/After Comparison",
+      "avg_reduction_by_category": "Average Reduction by Category",
+      "no_data": "No reduction tracking data yet."
+    },
+    "common": {
+      "required_field": "This is a required field",
+      "registration_success": "Successfully registered!",
+      "registration_failed": "Registration failed",
+      "loading_failed": "Failed to load data",
+      "server_error": "Please check if the backend server is running",
+      "auto_refresh": "Auto Refresh (30s)"
+    },
+    "system_info": {
+      "title": "System Information",
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "classification_model": "Classification Model"
+    }
+  }
+}

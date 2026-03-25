@@ -4,6 +4,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+import time
+from i18n import i18n
 
 API_BASE_URL = "http://localhost:8000/api/v1"
 
@@ -14,10 +16,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.title("📊 VOC Classifier - 제조시스템 UI 분류 및 분석")
+st.sidebar.markdown("### 🌐 Language")
+lang = st.sidebar.selectbox(
+    "Select Language",
+    i18n.get_available_languages(),
+    format_func=lambda x: {"ko": "한국어", "en": "English"}.get(x, x),
+    index=i18n.get_available_languages().index(i18n.get_language())
+)
+i18n.set_language(lang)
 
-st.sidebar.title("메뉴")
-page = st.sidebar.radio("페이지 선택", ["대시보드", "VOC 목록", "VOC 입력", "분류 모델", "UI 개선 추적"])
+st.title(f"📊 {i18n.t('app_title')} - {i18n.t('app_subtitle')}")
+
+st.sidebar.title(i18n.t("menu.dashboard"))
+page = st.sidebar.radio(
+    i18n.t("menu.dashboard"),
+    [
+        i18n.t("menu.dashboard"),
+        i18n.t("menu.voc_list"),
+        i18n.t("menu.voc_input"),
+        i18n.t("menu.classification_model"),
+        i18n.t("menu.ui_improvement_tracking")
+    ]
+)
 
 
 def get_analytics():
@@ -60,8 +80,13 @@ def get_categories():
     return []
 
 
-if page == "대시보드":
-    st.header("📈 VOC 분석 대시보드")
+if page == i18n.t("menu.dashboard"):
+    st.header(f"📈 {i18n.t('dashboard.title')}")
+
+    auto_refresh = st.checkbox("자동 새로고침 (30초)", value=False)
+    if auto_refresh:
+        time.sleep(30)
+        st.rerun()
 
     analytics = get_analytics()
     if analytics:
@@ -264,6 +289,84 @@ elif page == "UI 개선 추적":
     st.header("📊 UI 개선 추적")
 
     st.info("UI 개선 활동으로 인한 VOC 감소율을 추적합니다.")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        total_imps = st.metric("총 개선 활동", "0")
+    with col2:
+        completed_imps = st.metric("완료된 활동", "0")
+    with col3:
+        avg_reduction = st.metric("평균 감소율", "0%")
+
+    try:
+        response = requests.get(f"{API_BASE_URL}/ui-improvements/analytics/overview")
+        if response.status_code == 200:
+            analytics = response.json()
+
+            total_imps.metric("총 개선 활동", str(analytics["total_improvements"]))
+            completed_imps.metric("완료된 활동", str(analytics["completed_improvements"]))
+            avg_reduction.metric("평균 감소율", f"{analytics['average_reduction_rate'] * 100:.1f}%")
+
+            if analytics["reductions"]:
+                st.subheader("개선 활동별 감소율")
+                reduction_df = pd.DataFrame(analytics["reductions"])
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    fig_reduction = px.bar(
+                        reduction_df,
+                        x="improvement_name",
+                        y="reduction_percentage",
+                        title="개선 활동별 감소율 (%)",
+                        color="reduction_percentage",
+                        color_continuous_scale="RdYlGn_r"
+                    )
+                    fig_reduction.update_layout(xaxis_title="개선 활동", yaxis_title="감소율 (%)")
+                    st.plotly_chart(fig_reduction, use_container_width=True)
+
+                with col2:
+                    fig_comparison = px.scatter(
+                        reduction_df,
+                        x="before_count",
+                        y="after_count",
+                        title="개선 전후 VOC 수 비교",
+                        size="reduction_percentage",
+                        hover_data=["improvement_name", "reduction_percentage"],
+                        labels={"before_count": "개선 전", "after_count": "개선 후"}
+                    )
+                    fig_comparison.add_trace(
+                        go.Scatter(
+                            x=[0, max(reduction_df["before_count"].max(), reduction_df["after_count"].max()) * 1.1],
+                            y=[0, max(reduction_df["before_count"].max(), reduction_df["after_count"].max()) * 1.1],
+                            mode="lines",
+                            name="기준선",
+                            line=dict(dash="dash", color="gray")
+                        )
+                    )
+                    st.plotly_chart(fig_comparison, use_container_width=True)
+
+                if analytics["by_category"]:
+                    st.subheader("카테고리별 평균 감소율")
+                    category_df = pd.DataFrame(list(analytics["by_category"].items()), columns=["카테고리", "평균 감소율"])
+                    category_df["평균 감소율 (%)"] = category_df["평균 감소율"] * 100
+                    fig_category = px.bar(
+                        category_df,
+                        x="카테고리",
+                        y="평균 감소율 (%)",
+                        color="평균 감소율 (%)",
+                        color_continuous_scale="RdYlGn_r"
+                    )
+                    st.plotly_chart(fig_category, use_container_width=True)
+
+            else:
+                st.info("아직 감소율 추적 데이터가 없습니다.")
+        else:
+            st.error("분석 데이터를 불러오는데 실패했습니다.")
+    except Exception as e:
+        st.error(f"분석 데이터 불러오기 중 오류 발생: {str(e)}")
+
+    st.markdown("---")
 
     st.subheader("UI 개선 활동 등록")
 

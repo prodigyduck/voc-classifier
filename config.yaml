@@ -41,3 +41,25 @@ voc:
     - ANALYZED
     - RESOLVED
     - REJECTED
+
+# Notification Settings
+notification:
+  enabled: false
+  email:
+    enabled: false
+    smtp_host: smtp.gmail.com
+    smtp_port: 587
+    smtp_username: your-email@gmail.com
+    smtp_password: your-app-password
+    from_email: your-email@gmail.com
+    to_emails:
+      - recipient@example.com
+  slack:
+    enabled: false
+    webhook_url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+    channel: "#voc-alerts"
+  notify_on:
+    - new_voc
+    - voc_resolved
+    - ui_improvement_completed
+    - high_priority_voc

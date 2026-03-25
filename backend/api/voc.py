@@ -5,8 +5,10 @@ from sqlalchemy import func
 from backend.database.db import get_db
 from backend.models.models import VOC
 from backend.models.schemas import VOCCreate, VOCUpdate, VOC as VOCSchema
+from backend.services.notification import NotificationService
 
 router = APIRouter()
+notification_service = NotificationService()
 
 
 @router.get("/", response_model=List[VOCSchema])
@@ -48,6 +50,10 @@ def create_voc(voc: VOCCreate, db: Session = Depends(get_db)):
     db.add(db_voc)
     db.commit()
     db.refresh(db_voc)
+
+    notification_service.notify_new_voc(db_voc.id, db_voc.title, db_voc.priority)
+    notification_service.notify_high_priority_voc(db_voc.id, db_voc.title, db_voc.priority)
+
     return db_voc
 
 
@@ -87,4 +93,7 @@ def resolve_voc(voc_id: int, db: Session = Depends(get_db)):
     voc.resolved_at = func.now()
     db.commit()
     db.refresh(voc)
+
+    notification_service.notify_voc_resolved(voc.id, voc.title)
+
     return voc

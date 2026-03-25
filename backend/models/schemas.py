@@ -131,3 +131,21 @@ class ReductionAnalysisResponse(BaseModel):
     after_count: int
     reduction_rate: float
     reduction_percentage: float
+
+
+class ImprovementReductionData(BaseModel):
+    improvement_id: int
+    improvement_name: str
+    before_count: int
+    after_count: int
+    reduction_rate: float
+    reduction_percentage: float
+    category_name: Optional[str] = None
+
+
+class ImprovementAnalyticsResponse(BaseModel):
+    total_improvements: int
+    completed_improvements: int
+    average_reduction_rate: float
+    reductions: List[ImprovementReductionData]
+    by_category: dict
