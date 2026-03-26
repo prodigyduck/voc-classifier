@@ -16,14 +16,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.sidebar.markdown("### 🌐 Language")
-lang = st.sidebar.selectbox(
-    "Select Language",
-    i18n.get_available_languages(),
-    format_func=lambda x: {"ko": "한국어", "en": "English"}.get(x, x),
-    index=i18n.get_available_languages().index(i18n.get_language())
+st.sidebar.markdown("### 📱 Application")
+selected_app = st.sidebar.selectbox(
+    "Application",
+    ["All"],
+    label_visibility="collapsed"
 )
-i18n.set_language(lang)
 
 st.title(f"📊 {i18n.t('app_title')} - {i18n.t('app_subtitle')}")
 
