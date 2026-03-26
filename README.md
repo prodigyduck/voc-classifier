@@ -1,177 +1,222 @@
 # VOC Classifier
 
-제조시스템 UI에서 발생하는 VOC(Voice of Customer)를 BERTopic을 사용하여 자동 분류하고 분석하는 시스템입니다. UI 개선 활동으로 인한 VOC 감소율을 추적하여 시스템 개선을 지원합니다.
+VOC(Voice of Customer)를 BERTopic 기반 AI로 자동 분류하고 분석하는 시스템입니다.
 
 ## 기능
 
 - 📊 VOC 수집 및 관리
-- 🤖 BERTopic 기반 자동 분류
+- 🤖 BERTopic 기반 자동 분류 (AI 추천 카테고리)
 - 📈 분석 및 시각화 대시보드
-- 🔧 UI 개선 활동 추적
-- 📉 VOC 감소율 분석
-- 💻 CLI 툴 지원
+- 📉 카테고리별 트렌드 분석
+- 🎯 분류 신뢰도 통계
 
 ## 기술 스택
 
-- **백엔드**: FastAPI, SQLAlchemy, PostgreSQL
-- **프론트엔드**: Streamlit
-- **ML 모델**: BERTopic (sentence-transformers)
-- **데이터베이스**: PostgreSQL (별도 스키마: voc_classifier)
+| 구분 | 기술 |
+|------|------|
+| 백엔드 | FastAPI, SQLAlchemy |
+| 프론트엔드 | Streamlit |
+| ML 모델 | BERTopic, sentence-transformers |
+| 데이터베이스 | PostgreSQL |
 
-## 설치
+## 설치 가이드
 
-### 1. 의존성 설치
+### 1. 저장소 클론
+
+```bash
+git clone https://github.com/prodigyduck/voc-classifier.git
+cd voc-classifier
+```
+
+### 2. 가상환경 생성 및 활성화
+
+```bash
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+# Windows
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3. 의존성 설치
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 데이터베이스 설정
+### 4. 데이터베이스 설정
 
-PostgreSQL 데이터베이스가 실행 중이어야 합니다. 기존 `config.yaml`에서 연결 정보를 확인하세요:
+PostgreSQL 데이터베이스가 이미 실행 중이라고 가정합니다.
+
+`config.yaml` 파일을 프로젝트 루트에 생성하고 DB 연결 정보를 입력하세요:
 
 ```yaml
+# Database Configuration
 database:
   host: localhost
   port: 5432
-  name: todoapp
+  name: your_database_name
   schema: voc_classifier
-  user: todoapp
-  password: password
+  user: your_username
+  password: your_password
+
+# BERTopic Configuration
+bertopic:
+  language: korean
+  model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  min_topic_size: 10
+  nr_topics: null
+  calculate_probabilities: true
+
+# Application Configuration
+app:
+  name: VOC Classifier
+  version: 1.0.0
+  debug: true
+
+# AI Classification Settings
+classification:
+  auto_classify: true
+  confidence_threshold: 0.6
+  suggest_new_categories: true
 ```
 
-### 3. 테이블 생성
+### 5. 테이블 생성
 
 ```bash
-python3 sql/create_tables.py
+python sql/create_tables.py
 ```
 
-### 4. 샘플 데이터 생성 (선택사항)
+### 6. 샘플 데이터 생성 (선택사항)
 
 ```bash
-python3 sql/insert_sample_data.py
+python sql/insert_sample_data.py
 ```
 
-## 사용법
+## 실행 방법
 
 ### 백엔드 실행
 
 ```bash
-python3 backend/main.py
+# 가상환경 활성화 후
+uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
 
-백엔드는 `http://localhost:8000`에서 실행됩니다.
-API 문서: `http://localhost:8000/docs`
+- API 서버: http://localhost:8000
+- API 문서: http://localhost:8000/docs
 
 ### 프론트엔드 실행
 
 ```bash
-streamlit run frontend/app.py
+# 가상환경 활성화 후
+streamlit run frontend/app.py --server.address 0.0.0.0 --server.port 8501
 ```
 
-프론트엔드는 `http://localhost:8501`에서 실행됩니다.
+- 대시보드: http://localhost:8501
 
-### CLI 사용법
+## 사용법
 
+### 1. 모델 학습
+
+대시보드의 **"분류 모델"** 메뉴에서 **"모델 학습"** 버튼을 클릭합니다.
+
+또는 API 호출:
 ```bash
-# VOC 생성
-python3 voc_cli.py create --title "화면 로딩이 느립니다" --content "대시보드 로딩이 너무 느려서 개선이 필요합니다." --priority HIGH --submitted-by "김관리" --ui-related
-
-# VOC 목록 조회
-python3 voc_cli.py list --status PENDING --limit 10
-
-# 분류 모델 학습
-python3 voc_cli.py train
-
-# VOC 분류 (단일)
-python3 voc_cli.py classify --voc-id 1
-
-# VOC 일괄 분류
-python3 voc_cli.py classify --batch --limit 100
-
-# 분석 데이터 조회
-python3 voc_cli.py analytics
+curl -X POST http://localhost:8000/api/v1/classification/train
 ```
 
-## API 엔드포인트
+### 2. VOC 분류
 
-### VOC 관리
-- `GET /api/v1/vocs` - VOC 목록 조회
-- `POST /api/v1/vocs` - VOC 생성
-- `GET /api/v1/vocs/{voc_id}` - VOC 상세 조회
-- `PUT /api/v1/vocs/{voc_id}` - VOC 수정
-- `DELETE /api/v1/vocs/{voc_id}` - VOC 삭제
-- `POST /api/v1/vocs/{voc_id}/resolve` - VOC 해결 처리
+**"분류 실행"** 버튼을 클릭하면 미분류 VOC를 AI가 자동 분류합니다.
 
-### 카테고리 관리
-- `GET /api/v1/categories` - 카테고리 목록 조회
-- `POST /api/v1/categories` - 카테고리 생성
-- `GET /api/v1/categories/{category_id}` - 카테고리 상세 조회
-- `DELETE /api/v1/categories/{category_id}` - 카테고리 삭제
+또는 API 호출:
+```bash
+curl -X POST "http://localhost:8000/api/v1/classification/classify-batch?limit=100"
+```
 
-### 분류
-- `POST /api/v1/classification/train` - 모델 학습
-- `POST /api/v1/classification/classify/{voc_id}` - 단일 VOC 분류
-- `POST /api/v1/classification/classify-batch` - 일괄 분류
-- `GET /api/v1/classification/topics` - 토픽 정보 조회
+### 3. 대시보드 확인
 
-### 분석
-- `GET /api/v1/analytics/overview` - 분석 개요 조회
+- 총 VOC 건수
+- AI 분류 완료 건수
+- 카테고리별 분포
+- AI 추천 카테고리별 분포
+- 월별 트렌드
+- AI 분류 결과 트렌드
+- 분류 신뢰도 분포
 
-### UI 개선 추적
-- `GET /api/v1/ui-improvements` - UI 개선 활동 목록 조회
-- `POST /api/v1/ui-improvements` - UI 개선 활동 생성
-- `POST /api/v1/ui-improvements/{improvement_id}/track` - 감소율 추적
-- `PUT /api/v1/ui-improvements/{improvement_id}/complete` - UI 개선 완료 처리
+## AI 분류 방식
+
+```
+VOC 텍스트 → BERTopic 토픽 분류 → 키워드 추출 → 카테고리 매핑
+```
+
+| 단계 | 설명 |
+|------|------|
+| 임베딩 | sentence-transformers로 문서 벡터화 |
+| 클러스터링 | BERTopic으로 유사 문서 그룹화 |
+| 토픽 생성 | 각 그룹의 대표 키워드 추출 |
+| 카테고리 매핑 | 키워드 기반 카테고리 추천 |
+
+### 카테고리 매핑 규칙
+
+| 키워드 | 카테고리 |
+|--------|----------|
+| 느림, 지연, 속도, 로딩 | 성능 |
+| 화면, 버튼, 메뉴, 인터페이스 | UI/UX |
+| 에러, 오류, 실패, 버그 | 버그 |
+| 데이터, 저장, 검색 | 데이터 |
+| 로그인, 권한, 인증, 보안 | 보안 |
+| 기능, 추가, 요청 | 기능 요청 |
 
 ## 프로젝트 구조
 
 ```
-vocClaasifier/
+voc-classifier/
 ├── backend/
-│   ├── api/              # API 라우터
-│   ├── database/         # DB 연결 설정
-│   ├── ml/             # ML 분류 모델
-│   └── models/         # 데이터 모델
+│   ├── api/                 # API 라우터
+│   │   ├── analytics.py     # 분석 API
+│   │   ├── classification.py # 분류 API
+│   │   ├── voc.py           # VOC 관리 API
+│   │   └── categories.py    # 카테고리 API
+│   ├── database/            # DB 연결 설정
+│   │   └── db.py
+│   ├── ml/                  # ML 분류 모델
+│   │   └── classifier.py    # BERTopic 분류기
+│   └── models/              # 데이터 모델
+│       ├── models.py        # SQLAlchemy 모델
+│       └── schemas.py       # Pydantic 스키마
 ├── frontend/
-│   └── app.py         # Streamlit 앱
-├── sql/              # SQL 스크립트
-│   ├── schema.sql
-│   ├── create_tables.py
-│   └── insert_sample_data.py
-├── config.yaml       # 설정 파일
-├── requirements.txt   # 의존성
-├── voc_cli.py       # CLI 툴
+│   ├── app.py               # Streamlit 대시보드
+│   └── i18n.py              # 다국어 지원
+├── sql/
+│   ├── schema.sql           # DB 스키마
+│   ├── create_tables.py     # 테이블 생성 스크립트
+│   └── insert_sample_data.py # 샘플 데이터 생성
+├── models/                  # 학습된 모델 저장 (자동 생성)
+├── config.yaml              # 설정 파일 (직접 생성 필요)
+├── requirements.txt         # Python 의존성
 └── README.md
 ```
 
-## 카테고리
+## API 엔드포인트
 
-- **버그**: 시스템 오류 및 버그 보고
-- **UI/UX**: 사용자 인터페이스 및 경험 관련
-- **기능 요청**: 새로운 기능 추가 요청
-- **성능**: 시스템 성능 및 속도 관련
-- **데이터**: 데이터 처리 및 저장 관련
-- **보안**: 보안 및 권한 관련
-- **기타**: 그 외 기타 문의
+### 분석
+- `GET /api/v1/analytics/overview` - 대시보드 분석 데이터
 
-## 개발 계획
+### 분류
+- `POST /api/v1/classification/train` - 모델 학습
+- `POST /api/v1/classification/classify-batch` - 일괄 분류
+- `GET /api/v1/classification/topics` - 토픽 정보 조회
 
-- [x] 프로젝트 구조 설계
-- [x] DB 스키마 설계 및 생성
-- [x] 백엔드 API 구현
-- [x] BERTopic 분류 모델 통합
-- [x] Streamlit 프론트엔드 구현
-- [x] CLI 툴 개발
-- [x] UI 개선 활동별 감소율 시각화 고도화
-- [x] 실시간 VOC 모니터링 대시보드
-- [x] 알림 시스템 통합
-- [x] 다국어 지원 확장
+### VOC 관리
+- `GET /api/v1/vocs` - VOC 목록 조회
+- `POST /api/v1/vocs` - VOC 생성
+
+### 카테고리
+- `GET /api/v1/categories` - 카테고리 목록 조회
 
 ## 라이선스
 
 MIT License
-
-## 기여
-
-이 프로젝트에 기여하고 싶으시다면 Pull Request를 제출해주세요.

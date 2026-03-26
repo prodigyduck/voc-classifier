@@ -24,3 +24,8 @@ build/
 .eggs/
 .pytest_cache/
 streamlit/.streamlit/
+
+# Project specific
+*.log
+models/
+config.yaml
