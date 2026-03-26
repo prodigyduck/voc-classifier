@@ -88,7 +88,7 @@ if page == i18n.t("menu.dashboard"):
 
     analytics = get_analytics()
     if analytics:
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2 = st.columns(2)
 
         with col1:
             st.metric(i18n.t("dashboard.total_voc"), analytics["total_vocs"])
@@ -96,38 +96,11 @@ if page == i18n.t("menu.dashboard"):
         with col2:
             st.metric(i18n.t("dashboard.ui_related_voc"), analytics["ui_related_count"])
 
-        with col3:
-            pending = analytics["by_status"].get("PENDING", 0)
-            st.metric(i18n.t("dashboard.unclassified_voc"), pending)
-
-        with col4:
-            analyzed = analytics["by_status"].get("ANALYZED", 0)
-            st.metric(i18n.t("dashboard.classified_voc"), analyzed)
-
         st.subheader(i18n.t("dashboard.category_distribution"))
         if analytics["by_category"]:
             category_df = pd.DataFrame(list(analytics["by_category"].items()), columns=["카테고리", "건수"])
             fig_cat = px.bar(category_df, x="카테고리", y="건수", color="건수")
             st.plotly_chart(fig_cat, use_container_width=True)
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("상태별 분포")
-            if analytics["by_status"]:
-                status_df = pd.DataFrame(list(analytics["by_status"].items()), columns=["상태", "건수"])
-                fig_status = px.pie(status_df, values="건수", names="상태")
-                st.plotly_chart(fig_status, use_container_width=True)
-
-        with col2:
-            st.subheader("우선순위별 분포")
-            if analytics["by_priority"]:
-                priority_df = pd.DataFrame(list(analytics["by_priority"].items()), columns=["우선순위", "건수"])
-                priority_order = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
-                priority_df["우선순위"] = pd.Categorical(priority_df["우선순위"], categories=priority_order, ordered=True)
-                priority_df = priority_df.sort_values("우선순위")
-                fig_priority = px.bar(priority_df, x="우선순위", y="건수", color="우선순위")
-                st.plotly_chart(fig_priority, use_container_width=True)
 
         st.subheader("월별 추이")
         if analytics["monthly_trend"]:
@@ -165,26 +138,19 @@ elif page == "VOC 목록":
     categories = get_categories()
     category_options = {c["name"]: c["id"] for c in categories}
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2 = st.columns(2)
     with col1:
         selected_category = st.selectbox("카테고리", ["전체"] + list(category_options.keys()))
     with col2:
-        selected_status = st.selectbox("상태", ["전체", "PENDING", "ANALYZED", "RESOLVED", "REJECTED"])
-    with col3:
-        selected_priority = st.selectbox("우선순위", ["전체", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
-    with col4:
         ui_related_only = st.checkbox("UI 관련만 보기")
 
     vocs = get_vocs(
         category_id=category_options.get(selected_category) if selected_category != "전체" else None,
-        status=selected_status if selected_status != "전체" else None,
-        priority=selected_priority if selected_priority != "전체" else None,
         ui_related=ui_related_only if ui_related_only else None
     )
 
     if vocs:
         df = pd.DataFrame(vocs)
-        df_display = df[["id", "title", "status", "priority", "ui_related", "submitted_by", "created_at"]]
 
         category_name_map = {c["id"]: c["name"] for c in categories}
 
@@ -192,10 +158,9 @@ elif page == "VOC 목록":
             return {
                 "ID": row["id"],
                 "제목": row["title"],
-                "상태": row["status"],
-                "우선순위": row["priority"],
-                "UI 관련": "✅" if row["ui_related"] else "❌",
-                "제출자": row["submitted_by"],
+                "카테고리": category_name_map.get(row.get("category_id"), "-"),
+                "UI 관련": "✅" if row.get("ui_related") else "❌",
+                "제출자": row.get("submitted_by", "-"),
                 "생성일": pd.to_datetime(row["created_at"]).strftime("%Y-%m-%d %H:%M")
             }
 
