@@ -123,6 +123,7 @@ class AnalyticsResponse(BaseModel):
     by_priority: dict
     ui_related_count: int
     monthly_trend: List[dict]
+    category_trend: dict
 
 
 class ReductionAnalysisResponse(BaseModel):

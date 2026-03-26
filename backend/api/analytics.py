@@ -39,11 +39,28 @@ def get_analytics_overview(db: Session = Depends(get_db)):
     ).group_by(func.date_trunc('month', VOC.created_at)).order_by(func.date_trunc('month', VOC.created_at)).limit(12).all()
     monthly_trend_dict = [{"month": str(row[0]), "count": row[1]} for row in monthly_trend]
 
+    category_trend = db.query(
+        func.date_trunc('month', VOC.created_at).label("month"),
+        Category.name.label("category"),
+        func.count(VOC.id).label("count")
+    ).join(Category, VOC.category_id == Category.id).group_by(
+        func.date_trunc('month', VOC.created_at),
+        Category.name
+    ).order_by(func.date_trunc('month', VOC.created_at), Category.name).limit(84).all()
+
+    category_trend_dict = {}
+    for row in category_trend:
+        month_str = str(row[0])
+        if month_str not in category_trend_dict:
+            category_trend_dict[month_str] = {}
+        category_trend_dict[month_str][row[1]] = row[2]
+
     return AnalyticsResponse(
         total_vocs=total_vocs,
         by_category=by_category_dict,
         by_status=by_status_dict,
         by_priority=by_priority_dict,
         ui_related_count=ui_related_count,
-        monthly_trend=monthly_trend_dict
+        monthly_trend=monthly_trend_dict,
+        category_trend=category_trend_dict
     )

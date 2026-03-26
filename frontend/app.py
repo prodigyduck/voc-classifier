@@ -33,9 +33,7 @@ page = st.sidebar.radio(
     [
         i18n.t("menu.dashboard"),
         i18n.t("menu.voc_list"),
-        i18n.t("menu.voc_input"),
-        i18n.t("menu.classification_model"),
-        i18n.t("menu.ui_improvement_tracking")
+        i18n.t("menu.classification_model")
     ]
 )
 
@@ -137,6 +135,26 @@ if page == i18n.t("menu.dashboard"):
             fig_trend = px.line(trend_df, x="month", y="count", markers=True)
             fig_trend.update_layout(xaxis_title="월", yaxis_title="VOC 건수")
             st.plotly_chart(fig_trend, use_container_width=True)
+
+        if analytics.get("category_trend"):
+            st.subheader("카테고리별 트렌드")
+            trend_data = []
+            for month, categories in analytics["category_trend"].items():
+                for category, count in categories.items():
+                    trend_data.append({"월": month[:7], "카테고리": category, "건수": count})
+
+            if trend_data:
+                trend_df = pd.DataFrame(trend_data)
+                fig_category_trend = px.line(
+                    trend_df,
+                    x="월",
+                    y="건수",
+                    color="카테고리",
+                    markers=True,
+                    title="월별 카테고리별 VOC 추이"
+                )
+                fig_category_trend.update_layout(xaxis_title="월", yaxis_title="VOC 건수")
+                st.plotly_chart(fig_category_trend, use_container_width=True)
     else:
         st.error("분석 데이터를 불러오는데 실패했습니다. 백엔드 서버가 실행 중인지 확인해주세요.")
 

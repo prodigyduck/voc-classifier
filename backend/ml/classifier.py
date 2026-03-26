@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer
 import yaml
 from pathlib import Path
 from typing import List, Dict, Tuple
+import os
 
 
 class VOCClassifier:
@@ -21,9 +22,20 @@ class VOCClassifier:
         self.calculate_probabilities = bertopic_config.get("calculate_probabilities", True)
         self.confidence_threshold = classification_config.get("confidence_threshold", 0.6)
 
+        # Model persistence path
+        self.model_dir = Path(__file__).parent.parent.parent / "models"
+        self.model_path = self.model_dir / "bertopic_model"
+        self.embedding_model_path = self.model_dir / "embedding_model"
+
         self.model = None
         self.embedding_model = None
-        self._initialize_model()
+        self._is_fitted = False
+
+        # Try to load existing model first
+        if self._load_model():
+            self._is_fitted = True
+        else:
+            self._initialize_model()
 
     def _initialize_model(self):
         try:
@@ -41,16 +53,37 @@ class VOCClassifier:
             print(f"모델 초기화 중 오류 발생: {e}")
             raise
 
+    def _load_model(self) -> bool:
+        try:
+            if not self.model_path.exists():
+                return False
+
+            self.embedding_model = SentenceTransformer(self.model_name)
+            self.model = BERTopic.load(str(self.model_path), embedding_model=self.embedding_model)
+            return True
+        except Exception as e:
+            print(f"모델 로드 중 오류 발생: {e}")
+            return False
+
+    def _save_model(self):
+        try:
+            self.model_dir.mkdir(parents=True, exist_ok=True)
+            self.model.save(str(self.model_path), save_embedding_model=False)
+        except Exception as e:
+            print(f"모델 저장 중 오류 발생: {e}")
+
     def fit(self, documents: List[str]):
         if not documents:
             raise ValueError("분류할 문서가 없습니다.")
 
         topics, probs = self.model.fit_transform(documents)
+        self._is_fitted = True
+        self._save_model()
 
         return topics, probs
 
     def predict(self, documents: List[str]) -> List[Dict]:
-        if not self.model:
+        if not self._is_fitted:
             raise RuntimeError("모델이 학습되지 않았습니다. 먼저 fit()을 호출하세요.")
 
         if not documents:
