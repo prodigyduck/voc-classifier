@@ -124,6 +124,10 @@ class AnalyticsResponse(BaseModel):
     ui_related_count: int
     monthly_trend: List[dict]
     category_trend: dict
+    classified_count: int = 0
+    by_ai_category: dict = {}
+    ai_category_trend: dict = {}
+    confidence_distribution: dict = {}
 
 
 class ReductionAnalysisResponse(BaseModel):

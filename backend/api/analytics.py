@@ -55,6 +55,48 @@ def get_analytics_overview(db: Session = Depends(get_db)):
             category_trend_dict[month_str] = {}
         category_trend_dict[month_str][row[1]] = row[2]
 
+    classified_count = db.query(func.count(VOC.id)).filter(
+        VOC.ai_suggested_category_id.isnot(None)
+    ).scalar()
+
+    by_ai_category = db.query(
+        Category.name,
+        func.count(VOC.id).label("count")
+    ).join(VOC, VOC.ai_suggested_category_id == Category.id).group_by(Category.name).all()
+    by_ai_category_dict = {row[0]: row[1] for row in by_ai_category}
+
+    ai_category_trend = db.query(
+        func.date_trunc('month', VOC.created_at).label("month"),
+        Category.name.label("category"),
+        func.count(VOC.id).label("count")
+    ).join(Category, VOC.ai_suggested_category_id == Category.id).filter(
+        VOC.ai_suggested_category_id.isnot(None)
+    ).group_by(
+        func.date_trunc('month', VOC.created_at),
+        Category.name
+    ).order_by(func.date_trunc('month', VOC.created_at), Category.name).limit(84).all()
+
+    ai_category_trend_dict = {}
+    for row in ai_category_trend:
+        month_str = str(row[0])
+        if month_str not in ai_category_trend_dict:
+            ai_category_trend_dict[month_str] = {}
+        ai_category_trend_dict[month_str][row[1]] = row[2]
+
+    confidence_distribution = {
+        "high": db.query(func.count(VOC.id)).filter(
+            VOC.confidence_score >= 0.7
+        ).scalar() or 0,
+        "medium": db.query(func.count(VOC.id)).filter(
+            VOC.confidence_score >= 0.5,
+            VOC.confidence_score < 0.7
+        ).scalar() or 0,
+        "low": db.query(func.count(VOC.id)).filter(
+            VOC.confidence_score < 0.5,
+            VOC.confidence_score.isnot(None)
+        ).scalar() or 0
+    }
+
     return AnalyticsResponse(
         total_vocs=total_vocs,
         by_category=by_category_dict,
@@ -62,5 +104,9 @@ def get_analytics_overview(db: Session = Depends(get_db)):
         by_priority=by_priority_dict,
         ui_related_count=ui_related_count,
         monthly_trend=monthly_trend_dict,
-        category_trend=category_trend_dict
+        category_trend=category_trend_dict,
+        classified_count=classified_count,
+        by_ai_category=by_ai_category_dict,
+        ai_category_trend=ai_category_trend_dict,
+        confidence_distribution=confidence_distribution
     )

@@ -88,7 +88,7 @@ if page == i18n.t("menu.dashboard"):
 
     analytics = get_analytics()
     if analytics:
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
             st.metric(i18n.t("dashboard.total_voc"), analytics["total_vocs"])
@@ -96,11 +96,32 @@ if page == i18n.t("menu.dashboard"):
         with col2:
             st.metric(i18n.t("dashboard.ui_related_voc"), analytics["ui_related_count"])
 
+        with col3:
+            st.metric("AI 분류 완료", analytics.get("classified_count", 0))
+
         st.subheader(i18n.t("dashboard.category_distribution"))
         if analytics["by_category"]:
             category_df = pd.DataFrame(list(analytics["by_category"].items()), columns=["카테고리", "건수"])
             fig_cat = px.bar(category_df, x="카테고리", y="건수", color="건수")
             st.plotly_chart(fig_cat, use_container_width=True)
+
+        if analytics.get("by_ai_category"):
+            st.subheader("🤖 AI 분류 결과 분포")
+            ai_cat_df = pd.DataFrame(list(analytics["by_ai_category"].items()), columns=["AI 추천 카테고리", "건수"])
+            ai_cat_df = ai_cat_df.sort_values("건수", ascending=False)
+            fig_ai_cat = px.bar(ai_cat_df, x="AI 추천 카테고리", y="건수", color="건수", color_continuous_scale="Blues")
+            st.plotly_chart(fig_ai_cat, use_container_width=True)
+
+        if analytics.get("confidence_distribution"):
+            st.subheader("📊 분류 신뢰도 분포")
+            conf = analytics["confidence_distribution"]
+            conf_df = pd.DataFrame({
+                "신뢰도": ["높음 (≥70%)", "중간 (50-70%)", "낮음 (<50%)"],
+                "건수": [conf.get("high", 0), conf.get("medium", 0), conf.get("low", 0)]
+            })
+            fig_conf = px.pie(conf_df, values="건수", names="신뢰도", title="AI 분류 신뢰도 분포", color="신뢰도",
+                              color_discrete_map={"높음 (≥70%)": "green", "중간 (50-70%)": "orange", "낮음 (<50%)": "red"})
+            st.plotly_chart(fig_conf, use_container_width=True)
 
         st.subheader("월별 추이")
         if analytics["monthly_trend"]:
@@ -128,6 +149,26 @@ if page == i18n.t("menu.dashboard"):
                 )
                 fig_category_trend.update_layout(xaxis_title="월", yaxis_title="VOC 건수")
                 st.plotly_chart(fig_category_trend, use_container_width=True)
+
+        if analytics.get("ai_category_trend"):
+            st.subheader("🤖 AI 분류 결과 트렌드")
+            ai_trend_data = []
+            for month, categories in analytics["ai_category_trend"].items():
+                for category, count in categories.items():
+                    ai_trend_data.append({"월": month[:7], "AI 추천 카테고리": category, "건수": count})
+
+            if ai_trend_data:
+                ai_trend_df = pd.DataFrame(ai_trend_data)
+                fig_ai_trend = px.line(
+                    ai_trend_df,
+                    x="월",
+                    y="건수",
+                    color="AI 추천 카테고리",
+                    markers=True,
+                    title="월별 AI 분류 결과 추이"
+                )
+                fig_ai_trend.update_layout(xaxis_title="월", yaxis_title="VOC 건수")
+                st.plotly_chart(fig_ai_trend, use_container_width=True)
     else:
         st.error("분석 데이터를 불러오는데 실패했습니다. 백엔드 서버가 실행 중인지 확인해주세요.")
 
